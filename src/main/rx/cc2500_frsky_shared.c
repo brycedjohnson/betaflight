@@ -125,6 +125,14 @@ PG_RESET_TEMPLATE(rxFrSkySpiConfig_t, rxFrSkySpiConfig,
     .a1Source = FRSKY_SPI_A1_SOURCE_VBAT,
 );
 
+uint16_t calculateCrc(const uint8_t *data, uint8_t len) {
+    uint16_t crc = 0;
+    for (unsigned i = 0; i < len; i++) {
+        crc = (crc << 8) ^ (crcTable[((uint8_t)(crc >> 8) ^ *data++) & 0xFF]);
+    }
+    return crc;
+}
+
 static void initialise() {
     cc2500Reset();
 

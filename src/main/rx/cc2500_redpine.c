@@ -93,13 +93,11 @@ void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
 
 rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const protocolState)
 {
-    static bool ledIsOn;
     static uint16_t looptime = TOTAL_PACKET_TIME;
     static timeUs_t packetTimerUs;
 
     static timeUs_t totalTimerUs;
  
-    static uint8_t channelsToSkip = 1;
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
 
     switch (*protocolState) {
@@ -155,7 +153,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                     cc2500setRssiDbm(packet[ccLen - 2]);
 
                     ret = RX_SPI_RECEIVED_DATA;
-                    nextChannel(channelsToSkip);
+                    nextChannel(1);
                     cc2500Strobe(CC2500_SRX);
                 } 
             }
@@ -163,12 +161,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
 
         if (cmpTimeUs(micros(), totalTimerUs) > 50 * looptime) {
             //out of sync with packets - do a complete resysnc
-            if (ledIsOn) {
-                rxSpiLedOff();
-            } else {
-                rxSpiLedOn();
-            }
-            ledIsOn = !ledIsOn;
+            rxSpiLedToggle();
             setRssiDirect(0, RSSI_SOURCE_RX_PROTOCOL);
             nextChannel(1);
             cc2500Strobe(CC2500_SRX);
@@ -176,7 +169,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
         } else if ((cmpTimeUs(micros(), packetTimerUs) > looptime) && packetTimerUs) {
             //missed a packet
             packetTimerUs = micros();
-            nextChannel(channelsToSkip);
+            nextChannel(1);
             cc2500Strobe(CC2500_SRX);
             missingPackets++;
             DEBUG_SET(DEBUG_RX_FRSKY_SPI, 2, missingPackets);

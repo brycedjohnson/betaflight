@@ -102,7 +102,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
 
     switch (*protocolState) {
     case STATE_STARTING:
-        listLength = 47;
+        listLength = 49;
         initialiseData(0);
         *protocolState = STATE_UPDATE;
         nextChannel(1);

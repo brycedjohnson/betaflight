@@ -57,6 +57,8 @@
 
 extern const uint16_t crcTable[];
 
+#define SCALE_REDPINE(channelValue) ((2 * channelValue + 2452) / 3)
+
 
 #define TOTAL_PACKET_TIME 1500
 #define CHANNEL_START 3
@@ -66,16 +68,17 @@ void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
 
     //4 stick channels (11-bit)
     channelValue = (uint16_t)((packet[CHANNEL_START+1] << 8) & 0x700) | packet[CHANNEL_START];
-    rcData[0] = channelValue * 2.0f / 3 + 860 - 64 * 2 / 3;
+    rcData[0] = SCALE_REDPINE(channelValue);
     
     channelValue = (uint16_t)((packet[CHANNEL_START+2] << 4) & 0x7F0) | ((packet[CHANNEL_START+1] >> 4) & 0xF);
-    rcData[1] = channelValue * 2.0f / 3 + 860 - 64 * 2 / 3;
+    rcData[1] =  SCALE_REDPINE(channelValue);
     
     channelValue = (uint16_t)((packet[CHANNEL_START+4] << 8) & 0x700) | packet[CHANNEL_START+3];
-    rcData[2] = channelValue * 2.0f / 3 + 860 - 64 * 2 / 3;
+    rcData[2] =  SCALE_REDPINE(channelValue);
     
     channelValue = (uint16_t)((packet[CHANNEL_START+5] << 4) & 0x7F0) | ((packet[CHANNEL_START+4] >> 4) & 0xF);
-    rcData[3] = channelValue * 2.0f / 3 + 860 - 64 * 2 / 3;    
+    rcData[3] =  SCALE_REDPINE(channelValue);
+
     //12 1-bit aux channels - first 4 are interleaved with stick channels
     rcData[4]= (packet[CHANNEL_START + 1] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
     rcData[5]= (packet[CHANNEL_START + 2] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 

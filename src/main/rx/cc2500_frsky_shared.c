@@ -24,8 +24,11 @@
 
 #ifdef USE_RX_FRSKY_SPI
 
+#include "build/debug.h"
+
 #include "common/maths.h"
 
+#include "drivers/rx/rx_spi.h"
 #include "drivers/rx/rx_cc2500.h"
 #include "drivers/io.h"
 #include "drivers/time.h"
@@ -111,28 +114,6 @@ uint16_t calculateCrc(const uint8_t *data, uint8_t len) {
     return crc;
 }
 
-PG_REGISTER_WITH_RESET_TEMPLATE(rxFrSkySpiConfig_t, rxFrSkySpiConfig, PG_RX_FRSKY_SPI_CONFIG, 1);
-
-PG_RESET_TEMPLATE(rxFrSkySpiConfig_t, rxFrSkySpiConfig,
-    .autoBind = false,
-    .bindTxId = {0, 0},
-    .bindOffset = 0,
-    .bindHopData = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    .rxNum = 0,
-    .a1Source = FRSKY_SPI_A1_SOURCE_VBAT,
-);
-
-uint16_t calculateCrc(const uint8_t *data, uint8_t len) {
-    uint16_t crc = 0;
-    for (unsigned i = 0; i < len; i++) {
-        crc = (crc << 8) ^ (crcTable[((uint8_t)(crc >> 8) ^ *data++) & 0xFF]);
-    }
-    return crc;
-}
-
 static void initialise() {
     cc2500Reset();
 
@@ -206,37 +187,78 @@ static void initialise() {
         break;   
 #if defined(USE_RX_REDPINE_SPI)        
     case RX_SPI_REDPINE:
-        cc2500WriteReg(CC2500_02_IOCFG0,   0x01);
-        cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);       
-        cc2500WriteReg(CC2500_06_PKTLEN,   0x1E);
-        cc2500WriteReg(CC2500_07_PKTCTRL1, 0x04);        
-        cc2500WriteReg(CC2500_08_PKTCTRL0, 0x05);
-        cc2500WriteReg(CC2500_09_ADDR,     0x00);                
-        cc2500WriteReg(CC2500_0B_FSCTRL1,  0x0A);
-        cc2500WriteReg(CC2500_0C_FSCTRL0,  0x00);        
-        cc2500WriteReg(CC2500_0D_FREQ2,    0x5D);
-        cc2500WriteReg(CC2500_0E_FREQ1,    0x93);
-        cc2500WriteReg(CC2500_0F_FREQ0,    0xB1);        
-        cc2500WriteReg(CC2500_10_MDMCFG4,  0x2D);
-        cc2500WriteReg(CC2500_11_MDMCFG3,  0x3B);
-        cc2500WriteReg(CC2500_12_MDMCFG2,  0x73);
-        cc2500WriteReg(CC2500_13_MDMCFG1,  0x22);
-        cc2500WriteReg(CC2500_14_MDMCFG0,  0xF8);        
-        cc2500WriteReg(CC2500_15_DEVIATN,  0x00);
-        cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
-        cc2500WriteReg(CC2500_18_MCSM0,    0x18);            
-        cc2500WriteReg(CC2500_19_FOCCFG,   0x1D);
-        cc2500WriteReg(CC2500_1A_BSCFG,    0x1C);                
-        cc2500WriteReg(CC2500_1B_AGCCTRL2, 0xC7);
-        cc2500WriteReg(CC2500_1C_AGCCTRL1, 0x00);
-        cc2500WriteReg(CC2500_1D_AGCCTRL0, 0xB0);   
-        cc2500WriteReg(CC2500_21_FREND1,   0xB6);
-        cc2500WriteReg(CC2500_22_FREND0,   0x10);
-        cc2500WriteReg(CC2500_29_FSTEST,   0x59);                  
-        cc2500WriteReg(CC2500_2C_TEST2,    0x88);
-        cc2500WriteReg(CC2500_2D_TEST1,    0x31);
-        cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
-        cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);    
+            cc2500WriteReg(CC2500_02_IOCFG0,   0x01);
+            cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);       
+            cc2500WriteReg(CC2500_06_PKTLEN,   0x1E);
+            cc2500WriteReg(CC2500_07_PKTCTRL1, 0x04);
+            cc2500WriteReg(CC2500_08_PKTCTRL0, 0x01);
+            cc2500WriteReg(CC2500_09_ADDR,     0x00); 
+   
+        if (isRedpineFast()) {
+            cc2500WriteReg(CC2500_0B_FSCTRL1,  0x0A);
+            cc2500WriteReg(CC2500_0C_FSCTRL0,  0x00);        
+            cc2500WriteReg(CC2500_0D_FREQ2,    0x5D);
+            cc2500WriteReg(CC2500_0E_FREQ1,    0x93);
+            cc2500WriteReg(CC2500_0F_FREQ0,    0xB1);        
+            cc2500WriteReg(CC2500_10_MDMCFG4,  0x2D);
+            cc2500WriteReg(CC2500_11_MDMCFG3,  0x3B);
+            cc2500WriteReg(CC2500_12_MDMCFG2,  0x73);
+            cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            cc2500WriteReg(CC2500_14_MDMCFG0,  0x56);        
+            cc2500WriteReg(CC2500_15_DEVIATN,  0x00); 
+            cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
+            cc2500WriteReg(CC2500_18_MCSM0,    0x18);     
+            cc2500WriteReg(CC2500_19_FOCCFG,   0x1D);
+            cc2500WriteReg(CC2500_1A_BSCFG,    0x1C);                
+            cc2500WriteReg(CC2500_1B_AGCCTRL2, 0xC7);
+            cc2500WriteReg(CC2500_1C_AGCCTRL1, 0x00);
+            cc2500WriteReg(CC2500_1D_AGCCTRL0, 0xB0);   
+            cc2500WriteReg(CC2500_21_FREND1,   0xB6);   
+            cc2500WriteReg(CC2500_22_FREND0,   0x10);
+            cc2500WriteReg(CC2500_23_FSCAL3,   0xA9);
+            cc2500WriteReg(CC2500_24_FSCAL2,   0x0A);
+            cc2500WriteReg(CC2500_25_FSCAL1,   0x00);
+            cc2500WriteReg(CC2500_26_FSCAL0,   0x11);        
+            cc2500WriteReg(CC2500_29_FSTEST,   0x59);                  
+            cc2500WriteReg(CC2500_2C_TEST2,    0x88);
+            cc2500WriteReg(CC2500_2D_TEST1,    0x31);
+            cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
+            cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);    
+        } else {
+            cc2500WriteReg(CC2500_07_PKTCTRL1, 0x04);
+            cc2500WriteReg(CC2500_08_PKTCTRL0, 0x01);
+            cc2500WriteReg(CC2500_09_ADDR,     0x00); 
+            cc2500WriteReg(CC2500_0B_FSCTRL1,  0x0A);
+            cc2500WriteReg(CC2500_0C_FSCTRL0,  0x00);        
+            cc2500WriteReg(CC2500_0D_FREQ2,    0x5C);
+            cc2500WriteReg(CC2500_0E_FREQ1,    0x76);
+            cc2500WriteReg(CC2500_0F_FREQ0,    0x27);        
+            cc2500WriteReg(CC2500_10_MDMCFG4,  0x7B);
+            cc2500WriteReg(CC2500_11_MDMCFG3,  0x61);
+            cc2500WriteReg(CC2500_12_MDMCFG2,  0x13);
+            cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            cc2500WriteReg(CC2500_14_MDMCFG0,  0x7a);        
+            cc2500WriteReg(CC2500_15_DEVIATN,  0x51); 
+            cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
+            cc2500WriteReg(CC2500_18_MCSM0,    0x18);     
+            cc2500WriteReg(CC2500_19_FOCCFG,   0x16);
+            cc2500WriteReg(CC2500_1A_BSCFG,    0x6C);                
+            cc2500WriteReg(CC2500_1B_AGCCTRL2, 0x43);
+            cc2500WriteReg(CC2500_1C_AGCCTRL1, 0x40);
+            cc2500WriteReg(CC2500_1D_AGCCTRL0, 0x91);   
+            cc2500WriteReg(CC2500_21_FREND1,   0x56);   
+            cc2500WriteReg(CC2500_22_FREND0,   0x10);
+            cc2500WriteReg(CC2500_23_FSCAL3,   0xA9);
+            cc2500WriteReg(CC2500_24_FSCAL2,   0x0A);
+            cc2500WriteReg(CC2500_25_FSCAL1,   0x00);
+            cc2500WriteReg(CC2500_26_FSCAL0,   0x11);        
+            cc2500WriteReg(CC2500_29_FSTEST,   0x59);                  
+            cc2500WriteReg(CC2500_2C_TEST2,    0x88);
+            cc2500WriteReg(CC2500_2D_TEST1,    0x31);
+            cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
+            cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);  
+        }
+
 #endif
     default:
 
@@ -285,6 +307,8 @@ static void initTuneRx(void)
 
 static bool tuneRx(uint8_t *packet)
 {
+    DEBUG_SET(DEBUG_RX_FRSKY_SPI, 0, bindOffset);
+
     if (bindOffset >= 126) {
         bindOffset = -126;
     }
@@ -295,6 +319,8 @@ static bool tuneRx(uint8_t *packet)
     }
     if (cc2500getGdo()) {
         uint8_t ccLen = cc2500ReadReg(CC2500_3B_RXBYTES | CC2500_READ_BURST) & 0x7F;
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 1, ccLen);
+
         if (ccLen > RX_SPI_MAX_PAYLOAD_SIZE) {
             cc2500Strobe(CC2500_SFRX);
         } else if (ccLen) {
@@ -302,6 +328,8 @@ static bool tuneRx(uint8_t *packet)
             if (packet[ccLen - 1] & 0x80) {
                 if (packet[2] == 0x01) {
                     uint8_t Lqi = packet[ccLen - 1] & 0x7F;
+                    DEBUG_SET(DEBUG_RX_FRSKY_SPI, 2, Lqi);
+
                     // higher lqi represent better link quality
                     if (Lqi > 50) {
                         rxCc2500SpiConfigMutable()->bindOffset = bindOffset;

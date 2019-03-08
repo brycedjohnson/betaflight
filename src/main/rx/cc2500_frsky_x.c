@@ -295,9 +295,7 @@ rx_spi_received_e frSkyXHandlePacket(uint8_t * const packet, uint8_t * const pro
 
     static telemetryBuffer_t telemetryRxBuffer[TELEMETRY_SEQUENCE_LENGTH];
 
-#if defined(USE_RX_FRSKY_SPI_TELEMETRY)
     static bool telemetryReceived = false;
-#endif
 
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
 
@@ -409,7 +407,9 @@ rx_spi_received_e frSkyXHandlePacket(uint8_t * const packet, uint8_t * const pro
         if (telemetryReceived) {
             if (cmpTimeUs(micros(), packetTimerUs) > receiveDelayUs) { // if received or not received in this time sent telemetry data
                 *protocolState = STATE_TELEMETRY;
+                #ifdef USE_RX_FRSKY_SPI_TELEMETRY
                 buildTelemetryFrame(packet);
+                #endif
             }
         }
         if (cmpTimeUs(micros(), packetTimerUs) > timeoutUs * SYNC_DELAY_MAX) {

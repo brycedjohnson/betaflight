@@ -20,36 +20,12 @@
 
 #pragma once
 
+#include "rx/rx.h"
 #include "rx/rx_spi.h"
 
-#define MAX_MISSING_PKT 100
+#define RC_CHANNEL_COUNT_REDPINE 16
 
-#define DEBUG_DATA_ERROR_COUNT 0
-#define DEBUG_DATA_MISSING_PACKETS 1
-#define DEBUG_DATA_BAD_FRAME 2
+void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);
 
-#define SYNC_DELAY_MAX 9000
-
-enum {
-    STATE_INIT = 0,
-    STATE_BIND,
-    STATE_BIND_TUNING,
-    STATE_BIND_BINDING1,
-    STATE_BIND_BINDING2,
-    STATE_BIND_COMPLETE,
-    STATE_STARTING,
-    STATE_UPDATE,
-    STATE_DATA,
-    STATE_TELEMETRY,
-    STATE_RESUME,
-};
-
-extern uint8_t listLength;
-extern uint32_t missingPackets;
-extern timeDelta_t timeoutUs;
-
-uint16_t calculateCrc(const uint8_t *data, uint8_t len);
-
-void initialiseData(uint8_t adr);
-
-void nextChannel(uint8_t skip);
+void redpineInit(void);
+rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const protocolState);

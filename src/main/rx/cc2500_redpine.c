@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <sys/_stdint.h>
 
 #include "platform.h"
 
@@ -27,9 +26,6 @@
 
 #include "build/build_config.h"
 #include "build/debug.h"
-
-#include "pg/rx.h"
-#include "pg/rx_spi.h"
 
 #include "common/maths.h"
 #include "common/utils.h"
@@ -48,19 +44,38 @@
 
 #include "fc/config.h"
 
+#include "pg/rx.h"
+#include "pg/rx_spi.h"
+#include "pg/rx_spi_cc2500.h"
+
 #include "rx/rx_spi_common.h"
 #include "rx/cc2500_common.h"
 #include "rx/cc2500_frsky_common.h"
 #include "rx/cc2500_frsky_shared.h"
 
+#include "sensors/battery.h"
+
 #include "cc2500_redpine.h"
 
 extern const uint16_t crcTable[];
 
+bool redpineFast = true;
+
 #define SCALE_REDPINE(channelValue) ((2 * channelValue + 2452) / 3)
 
 
-#define TOTAL_PACKET_TIME 1500
+bool isRedpineFast(void) 
+{
+    return (redpineFast);
+}
+
+void switchRedpineMode(void) 
+{
+    redpineFast = !redpineFast;
+}
+
+
+#define TOTAL_PACKET_TIME 25000
 #define CHANNEL_START 3
 void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
 {
@@ -98,9 +113,9 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
 {
     static uint16_t looptime = TOTAL_PACKET_TIME;
     static timeUs_t packetTimerUs;
-
     static timeUs_t totalTimerUs;
- 
+    static timeUs_t protocolTimerUs;
+
     rx_spi_received_e ret = RX_SPI_RECEIVED_NONE;
 
     switch (*protocolState) {
@@ -113,11 +128,13 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
 #ifdef USE_RX_FRSKY_SPI_PA_LNA
         cc2500TxDisable();
 #endif // USE_RX_FRSKY_SPI_PA_LNA
+        protocolTimerUs = micros();
 
         break;
     case STATE_UPDATE:
         packetTimerUs = 0;
         totalTimerUs = micros();
+
         *protocolState = STATE_DATA;
         if (rxSpiCheckBindRequested(false)) {
             packetTimerUs = 0;
@@ -140,16 +157,20 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
 
                 if(((lcrc >> 8) == packet[CHANNEL_START+9]) && 
                     ((lcrc&0x00FF) == packet[CHANNEL_START+10]) &&
-                    (packet[1] == rxFrSkySpiConfig()->bindTxId[0]) &&
-                    (packet[2] == rxFrSkySpiConfig()->bindTxId[1])) {
+                    (packet[1] == rxCc2500SpiConfig()->bindTxId[0]) &&
+                    (packet[2] == rxCc2500SpiConfig()->bindTxId[1])) {
                     
-                    looptime = packet[CHANNEL_START+7] * 100;
+                    if (isRedpineFast()) {
+                        looptime = packet[CHANNEL_START+7] * 100;
+                    } else {
+                        looptime = packet[CHANNEL_START+7] * 1000; 
+                    }
 
                     DEBUG_SET(DEBUG_RX_FRSKY_SPI, 0, looptime);
-                    DEBUG_SET(DEBUG_RX_FRSKY_SPI, 1, packet[CHANNEL_START+8] * 10);
+                    DEBUG_SET(DEBUG_RX_FRSKY_SPI, 1, packet[ccLen - 2]);
                     packetTimerUs = micros();
                     totalTimerUs = micros();                         
-
+                    protocolTimerUs = micros();
                     missingPackets = 0;
                     rxSpiLedOn();
 
@@ -183,6 +204,12 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                 }
             }            
 #endif            
+        } else if (cmpTimeUs(micros(), protocolTimerUs) > 5000000) {
+            switchRedpineMode();
+            looptime = TOTAL_PACKET_TIME;
+            protocolTimerUs = micros();
+            *protocolState = STATE_INIT;
+
         }
         break;
     }

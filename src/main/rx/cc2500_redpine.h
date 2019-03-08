@@ -25,7 +25,7 @@
 
 #define RC_CHANNEL_COUNT_REDPINE 16
 
+bool isRedpineFast(void);
 void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);
-
 void redpineInit(void);
 rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const protocolState);

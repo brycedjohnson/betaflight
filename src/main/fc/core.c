@@ -305,6 +305,9 @@ void updateArmingStatus(void)
 
         if (IS_RC_MODE_ACTIVE(BOXPARALYZE)) {
             setArmingDisabled(ARMING_DISABLED_PARALYZE);
+        } else {
+            unsetArmingDisabled(ARMING_DISABLED_PARALYZE);
+
         }
 
         if (!isUsingSticksForArming()) {

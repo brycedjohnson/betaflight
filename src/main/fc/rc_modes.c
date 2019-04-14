@@ -132,7 +132,6 @@ void updateActivatedModes(void)
     memset(&andMask, 0, sizeof(andMask));
     memset(&newMask, 0, sizeof(newMask));
     memset(&stickyModes, 0, sizeof(stickyModes));
-    bitArraySet(&stickyModes, BOXPARALYZE);
 
     // determine which conditions set/clear the mode
     for (int i = 0; i < activeMacCount; i++) {

@@ -189,7 +189,7 @@ static void initialise() {
     case RX_SPI_REDPINE:
             cc2500WriteReg(CC2500_02_IOCFG0,   0x01);
             cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);       
-            cc2500WriteReg(CC2500_06_PKTLEN,   18);
+            cc2500WriteReg(CC2500_06_PKTLEN,   REDPINE_PACKET_SIZE);
             cc2500WriteReg(CC2500_07_PKTCTRL1, 0x0C);
             cc2500WriteReg(CC2500_08_PKTCTRL0, 0x05);
             cc2500WriteReg(CC2500_09_ADDR,     0x00); 
@@ -203,7 +203,11 @@ static void initialise() {
             cc2500WriteReg(CC2500_10_MDMCFG4,  0x2D);
             cc2500WriteReg(CC2500_11_MDMCFG3,  0x3B);
             cc2500WriteReg(CC2500_12_MDMCFG2,  0x73);
-            cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            #ifdef REDPINE_FEC
+                cc2500WriteReg(CC2500_13_MDMCFG1,  0xA3);
+            #else
+                cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            #endif
             cc2500WriteReg(CC2500_14_MDMCFG0,  0x56);        
             cc2500WriteReg(CC2500_15_DEVIATN,  0x00); 
             cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
@@ -233,7 +237,11 @@ static void initialise() {
             cc2500WriteReg(CC2500_10_MDMCFG4,  0x7B);
             cc2500WriteReg(CC2500_11_MDMCFG3,  0x61);
             cc2500WriteReg(CC2500_12_MDMCFG2,  0x13);
-            cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            #ifdef REDPINE_FEC
+                cc2500WriteReg(CC2500_13_MDMCFG1,  0xA3);
+            #else
+                cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+            #endif
             cc2500WriteReg(CC2500_14_MDMCFG0,  0x7a);        
             cc2500WriteReg(CC2500_15_DEVIATN,  0x51); 
             cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
@@ -278,8 +286,8 @@ void initialiseData(uint8_t adr)
 {
     cc2500WriteReg(CC2500_0C_FSCTRL0, (uint8_t)rxCc2500SpiConfig()->bindOffset);
     cc2500WriteReg(CC2500_18_MCSM0, 0x8);
-    cc2500WriteReg(CC2500_09_ADDR, adr ? 0x03 : rxCc2500SpiConfig()->bindTxId[0]);
-    cc2500WriteReg(CC2500_07_PKTCTRL1, 0x0D);
+    //cc2500WriteReg(CC2500_09_ADDR, adr ? 0x03 : rxCc2500SpiConfig()->bindTxId[0]);
+    //cc2500WriteReg(CC2500_07_PKTCTRL1, 0x0D);
     cc2500WriteReg(CC2500_19_FOCCFG, 0x16);
     delay(10);
 }

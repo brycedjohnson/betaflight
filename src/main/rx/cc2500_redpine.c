@@ -147,9 +147,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
         if (cc2500getGdo()) {
             uint8_t ccLen = cc2500ReadReg(CC2500_3B_RXBYTES | CC2500_READ_BURST) & 0x7F;
             DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, ccLen);
-            if (ccLen > RX_SPI_MAX_PAYLOAD_SIZE) {
-                 cc2500Strobe(CC2500_SFRX);
-            } else if (ccLen) {
+            if (ccLen == REDPINE_PACKET_SIZE_W_ADDONS) {
                 cc2500ReadFifo(packet, ccLen);
 
                 if((packet[1] == rxCc2500SpiConfig()->bindTxId[0]) &&
@@ -177,6 +175,8 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                     nextChannel(1);
                     cc2500Strobe(CC2500_SRX);
                 } 
+            } else {
+                cc2500Strobe(CC2500_SFRX);
             }
         }
 

@@ -189,9 +189,9 @@ static void initialise() {
     case RX_SPI_REDPINE:
             cc2500WriteReg(CC2500_02_IOCFG0,   0x01);
             cc2500WriteReg(CC2500_03_FIFOTHR,  0x07);       
-            cc2500WriteReg(CC2500_06_PKTLEN,   0x1E);
-            cc2500WriteReg(CC2500_07_PKTCTRL1, 0x04);
-            cc2500WriteReg(CC2500_08_PKTCTRL0, 0x01);
+            cc2500WriteReg(CC2500_06_PKTLEN,   18);
+            cc2500WriteReg(CC2500_07_PKTCTRL1, 0x0C);
+            cc2500WriteReg(CC2500_08_PKTCTRL0, 0x05);
             cc2500WriteReg(CC2500_09_ADDR,     0x00); 
    
         if (isRedpineFast()) {
@@ -225,9 +225,6 @@ static void initialise() {
             cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
             cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);    
         } else {
-            cc2500WriteReg(CC2500_07_PKTCTRL1, 0x04);
-            cc2500WriteReg(CC2500_08_PKTCTRL0, 0x01);
-            cc2500WriteReg(CC2500_09_ADDR,     0x00); 
             cc2500WriteReg(CC2500_0B_FSCTRL1,  0x0A);
             cc2500WriteReg(CC2500_0C_FSCTRL0,  0x00);        
             cc2500WriteReg(CC2500_0D_FREQ2,    0x5C);
@@ -450,6 +447,7 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
 
     switch (protocolState) {
     case STATE_INIT:
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
         if ((millis() - start_time) > 10) {
             initialise();
 
@@ -458,6 +456,7 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
 
         break;
     case STATE_BIND:
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
         if (rxSpiCheckBindRequested(true) || rxCc2500SpiConfig()->autoBind) {
             rxSpiLedOn();
             initTuneRx();
@@ -469,6 +468,7 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
 
         break;
     case STATE_BIND_TUNING:
+       DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
        if (tuneRx(packet)) {
             initGetBind();
             initialiseData(1);
@@ -478,12 +478,14 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
 
         break;
     case STATE_BIND_BINDING1:
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
         if (getBind1(packet)) {
             protocolState = STATE_BIND_BINDING2;
         }
 
         break;
     case STATE_BIND_BINDING2:
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
         if (getBind2(packet)) {
             cc2500Strobe(CC2500_SIDLE);
 
@@ -492,6 +494,7 @@ rx_spi_received_e frSkySpiDataReceived(uint8_t *packet)
 
         break;
     case STATE_BIND_COMPLETE:
+        DEBUG_SET(DEBUG_RX_FRSKY_SPI, 3, protocolState);
         if (!rxCc2500SpiConfig()->autoBind) {
             writeEEPROM();
         } else {

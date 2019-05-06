@@ -57,8 +57,6 @@
 
 #include "cc2500_redpine.h"
 
-extern const uint16_t crcTable[];
-
 bool redpineFast = true;
 
 #define SCALE_REDPINE(channelValue) ((2 * channelValue + 2452) / 3)
@@ -153,11 +151,8 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                  cc2500Strobe(CC2500_SFRX);
             } else if (ccLen) {
                 cc2500ReadFifo(packet, ccLen);
-                uint16_t lcrc= calculateCrc(&packet[0], CHANNEL_START+9);
 
-                if(((lcrc >> 8) == packet[CHANNEL_START+9]) && 
-                    ((lcrc&0x00FF) == packet[CHANNEL_START+10]) &&
-                    (packet[1] == rxCc2500SpiConfig()->bindTxId[0]) &&
+                if((packet[1] == rxCc2500SpiConfig()->bindTxId[0]) &&
                     (packet[2] == rxCc2500SpiConfig()->bindTxId[1])) {
                     
                     if (isRedpineFast()) {
@@ -172,6 +167,8 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                     totalTimerUs = micros();                         
                     protocolTimerUs = micros();
                     missingPackets = 0;
+                    DEBUG_SET(DEBUG_RX_FRSKY_SPI, 2, missingPackets);
+
                     rxSpiLedOn();
 
                     cc2500setRssiDbm(packet[ccLen - 2]);

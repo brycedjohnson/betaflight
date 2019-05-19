@@ -84,10 +84,10 @@ void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
         vtxSettingsConfigMutable()->band = packet[5]+1;
         vtxSettingsConfigMutable()->channel = packet[6];
         vtxSettingsConfigMutable()->power = packet[7];
-        rcData[0] = 800;
-        rcData[1] = 800;
-        rcData[2] = 800;
-        rcData[3] = 800;
+        rcData[0] = PWM_PULSE_MIN;
+        rcData[1] = PWM_PULSE_MIN;
+        rcData[2] = PWM_PULSE_MIN;
+        rcData[3] = PWM_PULSE_MIN;
     } else {
         uint16_t channelValue;
         //4 stick channels (11-bit)
@@ -213,7 +213,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                 }
             }            
 #endif            
-        } else if (cmpTimeUs(micros(), protocolTimerUs) > 5000000) {
+        } else if (cmpTimeUs(micros(), protocolTimerUs) > 2000000) {
             switchRedpineMode();
             looptime = TOTAL_PACKET_TIME;
             protocolTimerUs = micros();

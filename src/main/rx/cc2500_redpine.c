@@ -156,7 +156,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                     if (isRedpineFast()) {
                         looptime = packet[CHANNEL_START+7] * 100;
                     } else {
-                        looptime = packet[CHANNEL_START+7] * 1000; 
+                        looptime = packet[CHANNEL_START+7] * 100; 
                     }
 
                     DEBUG_SET(DEBUG_RX_FRSKY_SPI, 0, looptime);
@@ -201,7 +201,7 @@ rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const pr
                 }
             }            
 #endif            
-        } else if (cmpTimeUs(micros(), protocolTimerUs) > 5000000) {
+        } else if (cmpTimeUs(micros(), protocolTimerUs) > 2000000) {
             switchRedpineMode();
             looptime = TOTAL_PACKET_TIME;
             protocolTimerUs = micros();

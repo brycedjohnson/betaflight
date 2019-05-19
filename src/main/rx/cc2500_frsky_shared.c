@@ -203,11 +203,8 @@ static void initialise() {
             cc2500WriteReg(CC2500_10_MDMCFG4,  0x2D);
             cc2500WriteReg(CC2500_11_MDMCFG3,  0x3B);
             cc2500WriteReg(CC2500_12_MDMCFG2,  0x73);
-            #ifdef REDPINE_FEC
-                cc2500WriteReg(CC2500_13_MDMCFG1,  0xA3);
-            #else
-                cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
-            #endif
+            cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
+
             cc2500WriteReg(CC2500_14_MDMCFG0,  0x56);        
             cc2500WriteReg(CC2500_15_DEVIATN,  0x00); 
             cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
@@ -231,27 +228,25 @@ static void initialise() {
         } else {
             cc2500WriteReg(CC2500_0B_FSCTRL1,  0x0A);
             cc2500WriteReg(CC2500_0C_FSCTRL0,  0x00);        
-            cc2500WriteReg(CC2500_0D_FREQ2,    0x5C);
-            cc2500WriteReg(CC2500_0E_FREQ1,    0x76);
-            cc2500WriteReg(CC2500_0F_FREQ0,    0x27);        
-            cc2500WriteReg(CC2500_10_MDMCFG4,  0x7B);
-            cc2500WriteReg(CC2500_11_MDMCFG3,  0x61);
-            cc2500WriteReg(CC2500_12_MDMCFG2,  0x13);
-            #ifdef REDPINE_FEC
-                cc2500WriteReg(CC2500_13_MDMCFG1,  0xA3);
-            #else
-                cc2500WriteReg(CC2500_13_MDMCFG1,  0x23);
-            #endif
-            cc2500WriteReg(CC2500_14_MDMCFG0,  0x7a);        
-            cc2500WriteReg(CC2500_15_DEVIATN,  0x51); 
+            cc2500WriteReg(CC2500_0D_FREQ2,    0x5D);
+            cc2500WriteReg(CC2500_0E_FREQ1,    0x93);
+            cc2500WriteReg(CC2500_0F_FREQ0,    0xB1);        
+            cc2500WriteReg(CC2500_10_MDMCFG4,  0x2D);
+            cc2500WriteReg(CC2500_11_MDMCFG3,  0x3B);
+            cc2500WriteReg(CC2500_12_MDMCFG2,  0x73);
+
+            cc2500WriteReg(CC2500_13_MDMCFG1,  0xA3);
+
+            cc2500WriteReg(CC2500_14_MDMCFG0,  0x56);        
+            cc2500WriteReg(CC2500_15_DEVIATN,  0x00); 
             cc2500WriteReg(CC2500_17_MCSM1,    0x0C);
             cc2500WriteReg(CC2500_18_MCSM0,    0x18);     
-            cc2500WriteReg(CC2500_19_FOCCFG,   0x16);
-            cc2500WriteReg(CC2500_1A_BSCFG,    0x6C);                
-            cc2500WriteReg(CC2500_1B_AGCCTRL2, 0x43);
-            cc2500WriteReg(CC2500_1C_AGCCTRL1, 0x40);
-            cc2500WriteReg(CC2500_1D_AGCCTRL0, 0x91);   
-            cc2500WriteReg(CC2500_21_FREND1,   0x56);   
+            cc2500WriteReg(CC2500_19_FOCCFG,   0x1D);
+            cc2500WriteReg(CC2500_1A_BSCFG,    0x1C);                
+            cc2500WriteReg(CC2500_1B_AGCCTRL2, 0xC7);
+            cc2500WriteReg(CC2500_1C_AGCCTRL1, 0x00);
+            cc2500WriteReg(CC2500_1D_AGCCTRL0, 0xB0);   
+            cc2500WriteReg(CC2500_21_FREND1,   0xB6);   
             cc2500WriteReg(CC2500_22_FREND0,   0x10);
             cc2500WriteReg(CC2500_23_FSCAL3,   0xA9);
             cc2500WriteReg(CC2500_24_FSCAL2,   0x0A);
@@ -261,7 +256,7 @@ static void initialise() {
             cc2500WriteReg(CC2500_2C_TEST2,    0x88);
             cc2500WriteReg(CC2500_2D_TEST1,    0x31);
             cc2500WriteReg(CC2500_2E_TEST0,    0x0B);
-            cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);  
+            cc2500WriteReg(CC2500_3E_PATABLE,  0xFF);    
         }
 
 #endif

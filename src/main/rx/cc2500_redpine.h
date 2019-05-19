@@ -24,6 +24,10 @@
 #include "rx/rx_spi.h"
 
 #define RC_CHANNEL_COUNT_REDPINE 16
+#define REDPINE_PACKET_SIZE 11
+#define REDPINE_PACKET_SIZE_W_ADDONS (REDPINE_PACKET_SIZE + 2) 
+
+#define REDPINE_FEC true //from cc2500 datasheet: The convolutional coder is a rate 1/2 code with a constraint length of m=4
 
 bool isRedpineFast(void);
 void redpineSetRcData(uint16_t *rcData, const uint8_t *payload);

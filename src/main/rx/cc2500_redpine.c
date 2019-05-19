@@ -44,6 +44,8 @@
 
 #include "fc/config.h"
 
+#include "io/vtx.h"
+
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
 #include "pg/rx_spi_cc2500.h"
@@ -59,6 +61,7 @@
 
 bool redpineFast = true;
 
+#define VTX_STATUS_FRAME 1
 #define SCALE_REDPINE(channelValue) ((2 * channelValue + 2452) / 3)
 
 
@@ -77,34 +80,43 @@ void switchRedpineMode(void)
 #define CHANNEL_START 3
 void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
 {
-    uint16_t channelValue;
+    if (packet[CHANNEL_START] == VTX_STATUS_FRAME) {
+        vtxSettingsConfigMutable()->band = packet[5]+1;
+        vtxSettingsConfigMutable()->channel = packet[6];
+        vtxSettingsConfigMutable()->power = packet[7];
+        rcData[0] = 800;
+        rcData[1] = 800;
+        rcData[2] = 800;
+        rcData[3] = 800;
+    } else {
+        uint16_t channelValue;
+        //4 stick channels (11-bit)
+        channelValue = (uint16_t)((packet[CHANNEL_START+1] << 8) & 0x700) | packet[CHANNEL_START];
+        rcData[0] = SCALE_REDPINE(channelValue);
+        
+        channelValue = (uint16_t)((packet[CHANNEL_START+2] << 4) & 0x7F0) | ((packet[CHANNEL_START+1] >> 4) & 0xF);
+        rcData[1] =  SCALE_REDPINE(channelValue);
+        
+        channelValue = (uint16_t)((packet[CHANNEL_START+4] << 8) & 0x700) | packet[CHANNEL_START+3];
+        rcData[2] =  SCALE_REDPINE(channelValue);
+        
+        channelValue = (uint16_t)((packet[CHANNEL_START+5] << 4) & 0x7F0) | ((packet[CHANNEL_START+4] >> 4) & 0xF);
+        rcData[3] =  SCALE_REDPINE(channelValue);
 
-    //4 stick channels (11-bit)
-    channelValue = (uint16_t)((packet[CHANNEL_START+1] << 8) & 0x700) | packet[CHANNEL_START];
-    rcData[0] = SCALE_REDPINE(channelValue);
-    
-    channelValue = (uint16_t)((packet[CHANNEL_START+2] << 4) & 0x7F0) | ((packet[CHANNEL_START+1] >> 4) & 0xF);
-    rcData[1] =  SCALE_REDPINE(channelValue);
-    
-    channelValue = (uint16_t)((packet[CHANNEL_START+4] << 8) & 0x700) | packet[CHANNEL_START+3];
-    rcData[2] =  SCALE_REDPINE(channelValue);
-    
-    channelValue = (uint16_t)((packet[CHANNEL_START+5] << 4) & 0x7F0) | ((packet[CHANNEL_START+4] >> 4) & 0xF);
-    rcData[3] =  SCALE_REDPINE(channelValue);
-
-    //12 1-bit aux channels - first 4 are interleaved with stick channels
-    rcData[4]= (packet[CHANNEL_START + 1] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[5]= (packet[CHANNEL_START + 2] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[6]= (packet[CHANNEL_START + 4] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[7]= (packet[CHANNEL_START + 5] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[8]= (packet[CHANNEL_START + 6] & 0x01) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[9]= (packet[CHANNEL_START + 6] & 0x02) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[10]= (packet[CHANNEL_START + 6] & 0x04) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[11]= (packet[CHANNEL_START + 6] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[12]= (packet[CHANNEL_START + 6] & 0x10) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[13]= (packet[CHANNEL_START + 6] & 0x20) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[14]= (packet[CHANNEL_START + 6] & 0x40) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
-    rcData[15]= (packet[CHANNEL_START + 6] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;         
+        //12 1-bit aux channels - first 4 are interleaved with stick channels
+        rcData[4]= (packet[CHANNEL_START + 1] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[5]= (packet[CHANNEL_START + 2] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[6]= (packet[CHANNEL_START + 4] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[7]= (packet[CHANNEL_START + 5] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[8]= (packet[CHANNEL_START + 6] & 0x01) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[9]= (packet[CHANNEL_START + 6] & 0x02) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[10]= (packet[CHANNEL_START + 6] & 0x04) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[11]= (packet[CHANNEL_START + 6] & 0x08) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[12]= (packet[CHANNEL_START + 6] & 0x10) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[13]= (packet[CHANNEL_START + 6] & 0x20) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[14]= (packet[CHANNEL_START + 6] & 0x40) ? PWM_RANGE_MAX : PWM_RANGE_MIN; 
+        rcData[15]= (packet[CHANNEL_START + 6] & 0x80) ? PWM_RANGE_MAX : PWM_RANGE_MIN;         
+    }
 }
 
 rx_spi_received_e redpineHandlePacket(uint8_t * const packet, uint8_t * const protocolState)

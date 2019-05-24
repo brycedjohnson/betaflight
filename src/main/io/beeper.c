@@ -415,7 +415,7 @@ void beeperUpdate(timeUs_t currentTimeUs)
                 if (beeperConfig()->dshotBeaconTone == 6)
                 {
                     dshotBeaconCycle++;
-                    pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), ((dshotBeaconCycle/10) % 5) + 1, false);
+                    pwmWriteDshotCommand(ALL_MOTORS, getMotorCount(), ((dshotBeaconCycle/15) % 5) + 1, false);
                 } else if (beeperConfig()->dshotBeaconTone == 7) {
                     dshotBeaconCycle++;
                     pwmWriteDshotCommand((dshotBeaconCycle % getMotorCount()), getMotorCount(), (dshotBeaconCycle % 5) + 1, false);

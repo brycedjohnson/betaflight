@@ -80,7 +80,7 @@ void switchRedpineMode(void)
 #define CHANNEL_START 3
 void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
 {
-    if (packet[CHANNEL_START] == VTX_STATUS_FRAME) {
+    if (packet[CHANNEL_START] == VTX_STATUS_FRAME && packet[CHANNEL_START+1] == 0) {
         vtxSettingsConfigMutable()->band = packet[5]+1;
         vtxSettingsConfigMutable()->channel = packet[6];
         vtxSettingsConfigMutable()->power = packet[7];
@@ -88,6 +88,7 @@ void redpineSetRcData(uint16_t *rcData, const uint8_t *packet)
         rcData[1] = PWM_PULSE_MIN;
         rcData[2] = PWM_PULSE_MIN;
         rcData[3] = PWM_PULSE_MIN;
+        saveConfigAndNotify();
     } else {
         uint16_t channelValue;
         //4 stick channels (11-bit)
